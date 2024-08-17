@@ -1,0 +1,37 @@
+version: "3.9"
+
+services:
+  # Database will be postgres
+  # - Normally would use a volume for persistent data but for ease of use will avoid for this
+  database:
+    image: postgres:15-alpine3.18
+    env_file:
+      - path: ./database.env
+        required: true
+
+  # The backend, straight forward configuration
+  backend:
+    build:
+      context: ./app
+    env_file:
+      - path: ./database.env
+        required: true
+      - path: ./backend.env
+        required: true
+    ports:
+      - 5150:5150
+
+    develop:
+      watch:
+        - action: rebuild
+          path: ./app
+          target: /app
+    depends_on:
+      - database
+      
+  # Adminer for a database ui
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8081:8080
