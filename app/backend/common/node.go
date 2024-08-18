@@ -1,18 +1,20 @@
 package common
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"log"
 	"log/slog"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 )
 
 const logFile = "LogFile"
 
-type node struct {
+type Node struct {
 	File    *os.File
 	Logger  *slog.Logger
 	Log     chan Log
@@ -22,7 +24,7 @@ type node struct {
 	Server  *http.Server
 }
 
-func NewNode() *node {
+func NewNode() *Node {
 	file, err := os.OpenFile(os.Getenv(string(logFile)), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
 		log.Fatalf("Failed to open log file: %v", err)
@@ -32,7 +34,7 @@ func NewNode() *node {
 	slog.SetDefault(logger)
 
 	context, cancel := context.WithCancel(context.Background())
-	n := node{
+	n := Node{
 		File:    file,
 		Logger:  logger,
 		Log:     make(chan Log, 100),
@@ -45,12 +47,31 @@ func NewNode() *node {
 	return &n
 }
 
-func (n *node) init() {
+func (n *Node) init() {
 	go n.handleOutput()
 	go n.handleLog()
+	go n.handleInput()
 }
 
-func (n *node) handleOutput() {
+func (n *Node) handleInput() {
+	scanner := bufio.NewScanner(os.Stdin)
+
+	for scanner.Scan() {
+		select {
+		case <-n.Context.Done():
+			return
+
+		default:
+			switch strings.ToLower(scanner.Text()) {
+			case "exit":
+				n.Context.Done()
+				return
+			}
+		}
+	}
+}
+
+func (n *Node) handleOutput() {
 	for output := range n.Output {
 		select {
 		case <-n.Context.Done():
@@ -62,7 +83,7 @@ func (n *node) handleOutput() {
 	}
 }
 
-func (n *node) handleLog() {
+func (n *Node) handleLog() {
 	for log := range n.Log {
 		select {
 		case <-n.Context.Done():
@@ -87,7 +108,7 @@ func (n *node) handleLog() {
 	}
 }
 
-func (n *node) Shutdown() {
+func (n *Node) Shutdown() {
 	fmt.Println("Shutting down server")
 
 	n.Cancel()
