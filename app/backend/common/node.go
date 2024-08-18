@@ -12,7 +12,8 @@ import (
 	"time"
 )
 
-const logFile = "LogFile"
+const logFile = "LogFile.txt"
+const permissions = 0644
 
 type Node struct {
 	File    *os.File
@@ -25,7 +26,7 @@ type Node struct {
 }
 
 func NewNode() *Node {
-	file, err := os.OpenFile(os.Getenv(string(logFile)), os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	file, err := os.OpenFile(string(logFile), os.O_CREATE|os.O_WRONLY|os.O_APPEND, permissions)
 	if err != nil {
 		log.Fatalf("Failed to open log file: %v", err)
 	}
