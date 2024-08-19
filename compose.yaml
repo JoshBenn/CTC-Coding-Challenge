@@ -6,27 +6,46 @@ services:
   database:
     image: postgres:15-alpine3.18
     env_file:
-      - path: ./database.env
+      - path: ./app/backend/database.env
         required: true
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # frontend
+  frontend:
+    build:
+      context: ./app/frontend
+    develop:
+      watch:
+        - action: rebuild
+          path: ./app/frontend
+          target: /app/frontend
+    ports:
+      - 3000:80
+    depends_on:
+      - database
 
   # The backend, straight forward configuration
   backend:
     build:
-      context: ./app
+      context: ./app/backend
     env_file:
-      - path: ./database.env
+      - path: ./app/backend/database.env
         required: true
-      - path: ./backend.env
+      - path: ./app/backend/backend.env
         required: true
-    ports:
-      - 5150:5150
-
+    tty: true
     develop:
       watch:
         - action: rebuild
-          path: ./app
-          target: /app
+          path: ./app/backend
+          target: /application/app
+    volumes:
+      - ./app/backend:/app/backend
+    ports:
+      - 5150:5150
     depends_on:
+      - frontend
       - database
       
   # Adminer for a database ui
@@ -35,3 +54,6 @@ services:
     restart: always
     ports:
       - 8081:8080
+
+volumes:
+  postgres_data:

@@ -8,7 +8,7 @@ const (
 	Authentication Path = "/login"
 
 	// Message: New/Update[Post]
-	Message Path = "/message"
+	Chat Path = "/chat"
 )
 
 // Central source of truth for all json components

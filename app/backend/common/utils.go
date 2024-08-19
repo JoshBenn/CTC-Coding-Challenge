@@ -9,7 +9,9 @@ const (
 	// URI for the database
 	DatabaseUri Env = "DATABASE_URI"
 	// Password for the database
-	DatabasePassword Env = "DATABASE_PASSWORD"
+	PostgresPassword Env = "POSTGRES_PASSWORD"
+	// Address/port used for the database
+	BackendAddress Env = "BACKEND_ADDRESS"
 )
 
 // Logging level
