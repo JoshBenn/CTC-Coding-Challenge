@@ -21,7 +21,7 @@ services:
           path: ./app/frontend
           target: /app/frontend
     ports:
-      - 3000:80
+      - 3000:3000
     depends_on:
       - database
 
@@ -39,9 +39,7 @@ services:
       watch:
         - action: rebuild
           path: ./app/backend
-          target: /application/app
-    volumes:
-      - ./app/backend:/app/backend
+          target: /app/backend
     ports:
       - 5150:5150
     depends_on:

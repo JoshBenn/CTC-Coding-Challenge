@@ -1,0 +1,28 @@
+# Node.js dependencies
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Local environment files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Output directories
+.next
+out
+
+# Logs
+logs
+*.log
+
+# Miscellaneous
+.DS_Store
+*.swp
+
+# Docker-specific
+Dockerfile
+
+# Git
+.gitignore
