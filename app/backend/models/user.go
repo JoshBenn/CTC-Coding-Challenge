@@ -19,6 +19,8 @@ const (
 	BlankPassword      UserErr = "Password cannot be blank"
 	DoesNotExist       UserErr = "User does not exist"
 	InvalidCredentials UserErr = "InvalidCredentials"
+
+	EMAIL_REGEX = `/^[^\s@]+@[^\s@]+\.[^\s@]+$/`
 )
 
 // Create the error with this string

@@ -15,6 +15,12 @@ import (
 const logFile = "LogFile.txt"
 const permissions = 0644
 
+type NodeError string
+
+const (
+	ServerCompilationError NodeError = "Server compilation error"
+)
+
 type Node struct {
 	File    *os.File
 	Logger  *slog.Logger
