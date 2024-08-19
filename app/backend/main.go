@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/JoshBenn/CTC-Coding-Challenge/common"
+	"github.com/JoshBenn/CTC-Coding-Challenge/controllers"
 )
 
 func main() {
@@ -16,6 +17,6 @@ func main() {
 
 	mux := http.NewServeMux()
 	// To get go to shut up about unused
-	fmt.Println(mux)
+	mux.HandleFunc(string(common.Authentication), controllers.AuthenticationHandler(node))
 
 }

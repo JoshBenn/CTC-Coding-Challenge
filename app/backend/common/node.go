@@ -45,6 +45,7 @@ func NewNode() *Node {
 	}
 
 	n.init()
+	n.Output <- fmt.Sprintf("Node started at %v", time.Now().UTC())
 	return &n
 }
 
