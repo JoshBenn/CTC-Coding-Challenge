@@ -1,5 +1,7 @@
 package models
 
+import "github.com/JoshBenn/CTC-Coding-Challenge/common"
+
 // Models version of the user struct for json-ification
 type User struct {
 	Id       int64  `json:"id"`
@@ -56,19 +58,37 @@ func (r *RegisterRequest) GetPassword() string {
 
 // Primary struct for all responses
 type registerResponse struct {
-	Ok      bool   `json:"ok"`
+	Status  string `json:"status"`
 	Message string `json:"message"`
 }
 
 func NewRegisterResponse(ok bool, message string) registerResponse {
+	var status string
+	if ok {
+		status = string(common.Success)
+	} else {
+		status = string(common.Fail)
+	}
+
 	return registerResponse{
-		Ok: ok, Message: message,
+		Status:  status,
+		Message: message,
 	}
 }
 
+// For managing whether the user is logging in or logging out
+type InOut int64
+
+const (
+	// Default error state
+	Err InOut = 0
+	In  InOut = 1
+	Out InOut = 2
+)
+
 // Authentication form
 type AuthenticationRequest struct {
-	InOut    string `json:"in-out"`
+	InOut    int64  `json:"in-out"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }

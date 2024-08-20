@@ -5,13 +5,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/JoshBenn/CTC-Coding-Challenge/common"
 	"github.com/JoshBenn/CTC-Coding-Challenge/database"
 	"github.com/JoshBenn/CTC-Coding-Challenge/models"
 	"github.com/JoshBenn/CTC-Coding-Challenge/services"
+	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -64,14 +67,14 @@ func AuthenticationHandler(node *common.Node) http.HandlerFunc {
 					}
 
 					node.Log <- common.NewLog(common.Error, fmt.Sprintf("Unable to compile regex for email validation: %v", err))
-					http.Error(writer, string(common.ServerCompilationError), http.StatusBadGateway)
+					http.Error(writer, string(common.ServerCompilationError), http.StatusInternalServerError)
 					return
 				}
 
 				// Get the connection to the database
 				provider, err := services.NewProvider(node)
 				if err != nil {
-					http.Error(writer, err.Error(), http.StatusBadGateway)
+					http.Error(writer, err.Error(), http.StatusInternalServerError)
 					return
 				}
 				defer provider.CloseDbConn(node)
@@ -111,7 +114,7 @@ func AuthenticationHandler(node *common.Node) http.HandlerFunc {
 				break
 			}
 
-			// Log in/out
+			// Login
 		case http.MethodPost:
 			{
 				// Parse the JSON body
@@ -121,7 +124,69 @@ func AuthenticationHandler(node *common.Node) http.HandlerFunc {
 					return
 				}
 
-				break
+				// Validate the passed information
+				errs := validateUser(&login)
+				if len(errs) != 0 {
+					http.Error(writer, strings.Join(errs, " "), http.StatusBadRequest)
+					return
+				}
+
+				// Connect to the database
+				provider, err := services.NewProvider(node)
+				if err != nil {
+					node.Log <- common.NewLog(common.Error, string(common.DatabaseConnectionError))
+					node.Output <- string(common.DatabaseConnectionError)
+					http.Error(writer, string(common.DatabaseConnectionError), http.StatusInternalServerError)
+					return
+				}
+				provider.CloseDbConn(node)
+
+				// Attempt to get the user via email
+				user, err := getUserByEmail(&provider, login.Email)
+				if err != nil {
+					http.Error(writer, string(models.DoesNotExist), http.StatusBadRequest)
+					return
+				}
+
+				// Validate the password
+				if valid := checkPassword(&login, user.Password); !valid {
+					http.Error(writer, string(models.InvalidCredentials), http.StatusBadRequest)
+					return
+				}
+
+				// Get the jwt secret from env
+				jwtSecret := os.Getenv(string(common.JwtSecret))
+				if len(jwtSecret) == 0 {
+					node.Log <- common.NewLog(common.Error, string(common.MissingJwtSecretError))
+					node.Output <- string(common.MissingJwtSecretError)
+					http.Error(writer, string(common.MissingJwtSecretError), http.StatusInternalServerError)
+					return
+				}
+
+				// Just for notification purposes, wouldn't do this in production
+				node.Output <- fmt.Sprintf("Login Request: %v", user)
+
+				// Create a new JWT
+				claims := jwt.MapClaims{
+					"email": user.Email,
+					"exp":   time.Now().Add(time.Hour * 24).Unix(),
+				}
+				token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+
+				// Create a token string
+				tokenString, err := token.SignedString(([]byte(jwtSecret)))
+				if err != nil {
+					http.Error(writer, string(common.InternalServiceError), http.StatusInternalServerError)
+					return
+				}
+
+				cookie := http.Cookie{
+					Name:  string(common.AuthToken),
+					Value: tokenString,
+				}
+
+				writer.Header().Set(string(common.ContentType), string(common.ApplicationJson))
+				http.SetCookie(writer, &cookie)
 			}
 
 			// All other methods passed
@@ -234,7 +299,7 @@ func hashPassword[T user](user T) (string, error) {
 }
 
 // Compares the hash and a password
-func checkPassword(password, hash string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+func checkPassword[T user](user T, hash string) bool {
+	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(user.GetPassword()))
 	return err == nil
 }

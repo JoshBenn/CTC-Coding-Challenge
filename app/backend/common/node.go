@@ -18,7 +18,10 @@ const permissions = 0644
 type NodeError string
 
 const (
-	ServerCompilationError NodeError = "Server compilation error"
+	ServerCompilationError  NodeError = "Server compilation error"
+	InternalServiceError    NodeError = "Internal service error"
+	MissingJwtSecretError   NodeError = "Missing JWT secret"
+	DatabaseConnectionError NodeError = "Could not generate a connection to the database"
 )
 
 type Node struct {

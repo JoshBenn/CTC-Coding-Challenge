@@ -4,8 +4,8 @@ package common
 type Env string
 
 const (
-	// Password for the JWT
-	JwtPassword Env = "JWT_PASSWORD"
+	// Secret for the JWT
+	JwtSecret Env = "JWT_SECRET"
 	// URI for the database
 	DatabaseUri Env = "DATABASE_URI"
 	// Password for the database
@@ -24,6 +24,7 @@ const (
 	Error Level = 3
 )
 
+// Contains log information
 type Log struct {
 	Level   Level
 	Message string

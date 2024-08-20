@@ -1,8 +1,7 @@
 version: "3.9"
 
 services:
-  # Database will be postgres
-  # - Normally would use a volume for persistent data but for ease of use will avoid for this
+  # Database 
   database:
     image: postgres:15-alpine3.18
     env_file:
@@ -11,7 +10,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-  # frontend
+  # Frontend
   frontend:
     build:
       context: ./app/frontend
@@ -25,7 +24,7 @@ services:
     depends_on:
       - database
 
-  # The backend, straight forward configuration
+  # Backend
   backend:
     build:
       context: ./app/backend
@@ -45,6 +44,10 @@ services:
     depends_on:
       - frontend
       - database
+    # profiles:
+    #   - test
+    #   - build
+    #   - dev
       
   # Adminer for a database ui
   adminer:
@@ -53,5 +56,6 @@ services:
     ports:
       - 8081:8080
 
+# For persistent data across builds
 volumes:
   postgres_data:
