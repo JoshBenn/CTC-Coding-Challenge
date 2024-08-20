@@ -12,6 +12,10 @@ const (
 	PostgresPassword Env = "POSTGRES_PASSWORD"
 	// Address/port used for the database
 	BackendAddress Env = "BACKEND_ADDRESS"
+	// Gets the logfile name
+	logFile Env = "LogFile"
+	// file permissions
+	permissions = 0644
 )
 
 // Logging level

@@ -35,7 +35,7 @@ func main() {
 
 	go func() {
 		if err := http.ListenAndServe(os.Getenv(string(common.BackendAddress)), mux); err != nil && err != http.ErrServerClosed {
-			fmt.Println("Error starrting on server: ", err)
+			fmt.Println("Error starting server: ", err)
 			node.Cancel()
 		}
 	}()

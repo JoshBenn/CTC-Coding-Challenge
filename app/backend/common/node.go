@@ -12,9 +12,7 @@ import (
 	"time"
 )
 
-const logFile = "LogFile.txt"
-const permissions = 0644
-
+// Custom errors for backend
 type NodeError string
 
 const (
@@ -24,6 +22,7 @@ const (
 	DatabaseConnectionError NodeError = "Could not generate a connection to the database"
 )
 
+// Contains the backend primary structure
 type Node struct {
 	File    *os.File
 	Logger  *slog.Logger
@@ -34,8 +33,9 @@ type Node struct {
 	Server  *http.Server
 }
 
+// Generates and returns a new node
 func NewNode() *Node {
-	file, err := os.OpenFile(string(logFile), os.O_CREATE|os.O_WRONLY|os.O_APPEND, permissions)
+	file, err := os.OpenFile(os.Getenv(string(logFile)), os.O_CREATE|os.O_WRONLY|os.O_APPEND, permissions)
 	if err != nil {
 		log.Fatalf("Failed to open log file: %v", err)
 	}
@@ -58,12 +58,14 @@ func NewNode() *Node {
 	return &n
 }
 
+// Initializes the I/O of the backend
 func (n *Node) init() {
 	go n.handleOutput()
 	go n.handleLog()
 	go n.handleInput()
 }
 
+// Handles all input - specifies looking for exit to shut down the backend
 func (n *Node) handleInput() {
 	scanner := bufio.NewScanner(os.Stdin)
 
@@ -73,15 +75,17 @@ func (n *Node) handleInput() {
 			return
 
 		default:
-			switch strings.ToLower(scanner.Text()) {
+			text := scanner.Text()
+			switch strings.ToLower(text) {
 			case "exit":
-				n.Context.Done()
+				n.Cancel()
 				return
 			}
 		}
 	}
 }
 
+// Handles all output through the backend output channel
 func (n *Node) handleOutput() {
 	for output := range n.Output {
 		select {
@@ -94,6 +98,7 @@ func (n *Node) handleOutput() {
 	}
 }
 
+// Handles all logging for the system
 func (n *Node) handleLog() {
 	for log := range n.Log {
 		select {
@@ -119,6 +124,7 @@ func (n *Node) handleLog() {
 	}
 }
 
+// Shuts down the backend, ensuring all buffers are emptied and closed
 func (n *Node) Shutdown() {
 	fmt.Println("Shutting down server")
 
