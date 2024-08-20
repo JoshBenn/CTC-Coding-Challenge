@@ -5,9 +5,10 @@ import (
 	"net/http"
 
 	"github.com/JoshBenn/CTC-Coding-Challenge/common"
+	"github.com/JoshBenn/CTC-Coding-Challenge/models"
 )
 
-func ChatHandler(node *common.Node) http.HandlerFunc {
+func ChatHandler(node *common.Node, chatroom *models.Chatroom) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
 		if request.URL.Path != string(common.Authentication) {
 			http.NotFound(writer, request)
@@ -15,13 +16,13 @@ func ChatHandler(node *common.Node) http.HandlerFunc {
 		}
 
 		switch request.Method {
-		// Registration
+		// New message
 		case http.MethodPut:
 			{
 				break
 			}
 
-			// Log in/out
+			// Get the messages
 		case http.MethodPost:
 			{
 
@@ -31,7 +32,7 @@ func ChatHandler(node *common.Node) http.HandlerFunc {
 			// All other methods passed
 		default:
 			{
-				writer.Header().Set(string(common.Allow), fmt.Sprintf("%s, %s", common.Put, common.Post))
+				writer.Header().Set(string(common.Allow), fmt.Sprintf("%s, %s", common.Put, common.Get))
 				http.Error(writer, string(common.MethodNotAllowed), http.StatusMethodNotAllowed)
 			}
 		}

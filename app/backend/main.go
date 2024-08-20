@@ -7,6 +7,7 @@ import (
 
 	"github.com/JoshBenn/CTC-Coding-Challenge/common"
 	"github.com/JoshBenn/CTC-Coding-Challenge/controllers"
+	"github.com/JoshBenn/CTC-Coding-Challenge/models"
 )
 
 func main() {
@@ -19,10 +20,12 @@ func main() {
 	node.Output <- "Backend Initialized\n"
 	defer node.Shutdown()
 
+	chatroom := models.NewChatroom(node)
+
 	mux := http.NewServeMux()
 	// To get go to shut up about unused
 	mux.HandleFunc(string(common.Authentication), controllers.AuthenticationHandler(node))
-	mux.HandleFunc(string(common.Chat), controllers.ChatHandler(node))
+	mux.HandleFunc(string(common.Chat), controllers.ChatHandler(node, chatroom))
 
 	server := &http.Server{
 		Addr:    os.Getenv(string(common.BackendAddress)),

@@ -4,10 +4,10 @@ package common
 type Path string
 
 const (
-	// User: registration[PUT] and login[POST]
+	// User: Registration[PUT] and Login[POST]
 	Authentication Path = "/login"
 
-	// Message: New/Update[Post]
+	// Message: New[Put] Refresh[Get]
 	Chat Path = "/chat"
 )
 
