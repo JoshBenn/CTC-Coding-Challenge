@@ -1,6 +1,13 @@
-
-export type User = {
+// Registration Request form
+export type RegisterRequest = {
     email: string;
     username: string;
-    // jwt?
-}
+    password: string;
+};
+
+// Object for maintaining user data
+export type UserData = {
+    username: string;
+    token: string;
+    exp: number;
+};
