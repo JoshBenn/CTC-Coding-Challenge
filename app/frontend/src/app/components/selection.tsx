@@ -9,7 +9,7 @@ interface SelectionProps {
 }
 
 
-const Selection: React.FC<SelectionProps> = ({ updateUserData }) => {
+const Selection = ({ updateUserData }: SelectionProps) => {
     const [selected, updateSelected] = useState<number>(SelectionType.unselected);
 
     const handleSelection = () => (

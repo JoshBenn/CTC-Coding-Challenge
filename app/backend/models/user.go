@@ -1,6 +1,8 @@
 package models
 
-import "github.com/JoshBenn/CTC-Coding-Challenge/common"
+import (
+	"github.com/JoshBenn/CTC-Coding-Challenge/common"
+)
 
 // Models version of the user struct for json-ification
 type User struct {
@@ -101,8 +103,26 @@ func (l *AuthenticationRequest) GetPassword() string {
 }
 
 type authenticationResponse struct {
+	Status   string `json:"success"`
+	Message  string `json:"message"`
+	Username string `json:"username"`
+	Token    string `json:"token"`
+	Exp      int64  `json:"exp"`
 }
 
-func NewAuthenticationResponse() authenticationResponse {
-	return authenticationResponse{}
+func NewAuthenticationResponse(ok bool, message string, username string, token string, exp int64) authenticationResponse {
+	var status string
+	if ok {
+		status = string(common.Success)
+	} else {
+		status = string(common.Fail)
+	}
+
+	return authenticationResponse{
+		Status:   status,
+		Message:  message,
+		Username: username,
+		Token:    token,
+		Exp:      exp,
+	}
 }

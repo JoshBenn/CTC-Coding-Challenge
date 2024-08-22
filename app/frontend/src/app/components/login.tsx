@@ -56,8 +56,18 @@ const Login = ({ updateSelection, updateUserData }: LoginProps) => {
                 errors.push(response.statusText);
                 return;
             }
+            console.log(response);
+
+            const cookie = response.headers.get(JsonComponent.setCookie);
+            if (cookie) {
+                console.log(cookie)
+                document.cookie = cookie;
+            }
+            return response.json()
         }).then(data => {
-            console.log("Succes:", data);
+            if (data) {
+                console.log("Success", data);
+            }
         }).catch((error) => {
             errors.push("Error", error);
             console.error("Error:", error);

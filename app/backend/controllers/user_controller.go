@@ -29,7 +29,6 @@ type user interface {
 // Handles all registration and authentication requests
 func AuthenticationHandler(node *common.Node) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		fmt.Println(request, request.Body)
 		if request.URL.Path != string(common.Authentication) {
 			http.NotFound(writer, request)
 			return
@@ -45,6 +44,7 @@ func AuthenticationHandler(node *common.Node) http.HandlerFunc {
 					http.Error(writer, err.Error(), http.StatusBadRequest)
 					return
 				}
+				node.Output <- "New registration attempt"
 				// Prepare the header
 				writer.Header().Set(string(common.ContentType), string(common.ApplicationJson))
 
@@ -86,7 +86,7 @@ func AuthenticationHandler(node *common.Node) http.HandlerFunc {
 				users, err := getUsers(provider)
 				if err != nil || len(users) != 0 {
 					// Check if the user already exists
-					if err := queryUser(provider, &registration); err != nil {
+					if err := queryUser(provider, &registration); err != nil && err.Error() != "no rows in result set" {
 						json.NewEncoder(writer).Encode(models.NewRegisterResponse(false, string(models.UserExists)))
 						return
 					}
@@ -131,12 +131,13 @@ func AuthenticationHandler(node *common.Node) http.HandlerFunc {
 					http.Error(writer, err.Error(), http.StatusBadRequest)
 					return
 				}
+				node.Output <- "New login attempt"
 				writer.Header().Set(string(common.ContentType), string(common.ApplicationJson))
 
 				// Validate the passed information
 				errs := validateUser(&login)
 				if len(errs) != 0 {
-					json.NewEncoder(writer).Encode(models.NewRegisterResponse(false, strings.Join(errs, " ")))
+					json.NewEncoder(writer).Encode(models.NewAuthenticationResponse(false, strings.Join(errs, " "), "", "", 0))
 					return
 				}
 
@@ -153,13 +154,13 @@ func AuthenticationHandler(node *common.Node) http.HandlerFunc {
 				// Attempt to get the user via email
 				user, err := getUserByEmail(provider, login.Email)
 				if err != nil {
-					json.NewEncoder(writer).Encode(models.NewRegisterResponse(false, string(models.DoesNotExist)))
+					json.NewEncoder(writer).Encode(models.NewAuthenticationResponse(false, string(models.DoesNotExist), "", "", 0))
 					return
 				}
 
 				// Validate the password
 				if valid := checkPassword(&login, user.Password); !valid {
-					json.NewEncoder(writer).Encode(models.NewRegisterResponse(false, string(models.InvalidCredentials)))
+					json.NewEncoder(writer).Encode(models.NewAuthenticationResponse(false, string(models.InvalidCredentials), "", "", 0))
 					return
 				}
 
@@ -175,6 +176,7 @@ func AuthenticationHandler(node *common.Node) http.HandlerFunc {
 				// Just for notification purposes, wouldn't do this in production
 				node.Output <- fmt.Sprintf("Login Request: %v", user)
 
+				exp := time.Now().Add(time.Hour * 24).Unix()
 				// Create a new JWT
 				claims := jwt.MapClaims{
 					"email": user.Email,
@@ -194,7 +196,7 @@ func AuthenticationHandler(node *common.Node) http.HandlerFunc {
 					Value: tokenString,
 				}
 
-				json.NewEncoder(writer).Encode(models.NewRegisterResponse(true, string(common.Success)))
+				json.NewEncoder(writer).Encode(models.NewAuthenticationResponse(false, string(common.Success), user.Username, tokenString, exp))
 				http.SetCookie(writer, &cookie)
 				return
 			}
@@ -239,14 +241,15 @@ func validateEmail[T user](user T) error {
 	return nil
 }
 
-func userToDb(user *models.User) database.User {
-	return database.User{
-		ID:       user.Id,
-		Email:    user.Email,
-		Username: user.Username,
-		Password: user.Password,
-	}
-}
+// **Unused so commented out**
+// func userToDb(user *models.User) database.User {
+// 	return database.User{
+// 		ID:       user.Id,
+// 		Email:    user.Email,
+// 		Username: user.Username,
+// 		Password: user.Password,
+// 	}
+// }
 
 // Converts a database user to a user struct
 func dbToUser(dbUser *database.User) models.User {
@@ -279,22 +282,22 @@ func getUserByEmail(provider *services.Provider, email string) (models.User, err
 	// Get the user  via email
 	dbUser, err := provider.Queries.GetUserByEmail(context.Background(), email)
 	if err != nil {
-		fmt.Println(err)
 		return models.User{}, err
 	}
 
 	return dbToUser(&dbUser), nil
 }
 
-func getUserByUsername(provider *services.Provider, username string) (models.User, error) {
-	// Get the user via username
-	dbUser, err := provider.Queries.GetUserByUsername(context.Background(), username)
-	if err != nil {
-		return models.User{}, err
-	}
+// **Unused so commented out**
+// func getUserByUsername(provider *services.Provider, username string) (models.User, error) {
+// 	// Get the user via username
+// 	dbUser, err := provider.Queries.GetUserByUsername(context.Background(), username)
+// 	if err != nil {
+// 		return models.User{}, err
+// 	}
 
-	return dbToUser(&dbUser), nil
-}
+// 	return dbToUser(&dbUser), nil
+// }
 
 // Query if the user exists via the email
 func queryUser[T user](provider *services.Provider, user T) error {

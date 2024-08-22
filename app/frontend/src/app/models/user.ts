@@ -17,11 +17,9 @@ export const NewRegistrationRequest = ({ Email, Username, Password }: RegisterRe
 
 // Object for maintaining user data
 export type UserData = {
-    status: string;
     username: string;
     token: string;
     exp: number;
-    message: string;
 };
 
 export const InOut = Object.freeze({

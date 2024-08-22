@@ -12,6 +12,7 @@ export const JsonComponent = Object.freeze({
     failure: "STATUS_FAILURE",
     contentType: "content-type",
     applicationJson: "application/json",
+    setCookie: "Set-Cookie",
 });
 
 // Selection state for the component
