@@ -88,7 +88,7 @@ const (
 
 // Authentication form
 type AuthenticationRequest struct {
-	InOut    int64  `json:"in-out"`
+	InOut    int64  `json:"in_out"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }

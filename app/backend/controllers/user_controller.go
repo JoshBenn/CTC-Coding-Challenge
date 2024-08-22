@@ -29,6 +29,7 @@ type user interface {
 // Handles all registration and authentication requests
 func AuthenticationHandler(node *common.Node) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
+		fmt.Println(request, request.Body)
 		if request.URL.Path != string(common.Authentication) {
 			http.NotFound(writer, request)
 			return
@@ -44,6 +45,7 @@ func AuthenticationHandler(node *common.Node) http.HandlerFunc {
 					http.Error(writer, err.Error(), http.StatusBadRequest)
 					return
 				}
+				fmt.Println(registration)
 
 				// Validate the data exists in the body
 				var errs []string
@@ -80,7 +82,7 @@ func AuthenticationHandler(node *common.Node) http.HandlerFunc {
 				defer provider.CloseDbConn(node)
 
 				// Check if the user already exists
-				if err := queryUser(&provider, &registration); err != nil {
+				if err := queryUser(provider, &registration); err != nil {
 					http.Error(writer, models.UserError(models.UserExists), http.StatusBadRequest)
 					return
 				}
@@ -135,14 +137,14 @@ func AuthenticationHandler(node *common.Node) http.HandlerFunc {
 				provider, err := services.NewProvider(node)
 				if err != nil {
 					node.Log <- common.NewLog(common.Error, string(common.DatabaseConnectionError))
-					node.Output <- string(common.DatabaseConnectionError)
+					node.Output <- fmt.Sprintf("%s: %v", string(common.DatabaseConnectionError), err)
 					http.Error(writer, string(common.DatabaseConnectionError), http.StatusInternalServerError)
 					return
 				}
-				provider.CloseDbConn(node)
+				defer provider.CloseDbConn(node)
 
 				// Attempt to get the user via email
-				user, err := getUserByEmail(&provider, login.Email)
+				user, err := getUserByEmail(provider, login.Email)
 				if err != nil {
 					http.Error(writer, string(models.DoesNotExist), http.StatusBadRequest)
 					return

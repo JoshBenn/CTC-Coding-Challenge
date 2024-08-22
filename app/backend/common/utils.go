@@ -13,7 +13,7 @@ const (
 	// Address/port used for the database
 	BackendAddress Env = "BACKEND_ADDRESS"
 	// Gets the logfile name
-	logFile Env = "LogFile"
+	logFile Env = "LOG_FILE"
 	// file permissions
 	permissions = 0644
 )

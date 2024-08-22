@@ -16,13 +16,13 @@ type Provider struct {
 }
 
 // Creates the struct for easy user management -- Ideally there's a limited pool of these connections
-func NewProvider(node *common.Node) (Provider, error) {
+func NewProvider(node *common.Node) (*Provider, error) {
 	queries, conn, err := database.NewDatabaseConnection(node)
 	if err != nil {
-		return Provider{}, err
+		return &Provider{}, err
 	}
 
-	return Provider{Queries: queries, Conn: conn}, nil
+	return &Provider{Queries: queries, Conn: conn}, nil
 }
 
 // Closes the connection to the database

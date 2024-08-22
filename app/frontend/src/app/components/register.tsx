@@ -1,24 +1,106 @@
-import { useState } from "react";
-import { UserData } from "../models/user";
+import { useRef, useState } from "react";
+import { InOut, NewRegistrationRequest, UserData } from "../models/user";
+import { ApiPath, JsonComponent, SelectionType } from "../common/utils";
 
-interface RegisterProps {
+export interface RegisterProps {
+    updateSelection: React.Dispatch<React.SetStateAction<number>>;
     updateUserData: React.Dispatch<React.SetStateAction<UserData | undefined>>;
 };
 
-const Register = ({ updateUserData }: RegisterProps) => {
+const Register = ({ updateSelection, updateUserData }: RegisterProps) => {
     const [email, updateEmail] = useState<string>("");
     const [username, updateUsername] = useState<string>("");
     const [password, updatePassword] = useState<string>("");
+    const [notification, updateNotification] = useState<string[]>([]);
+    const timer = useRef<NodeJS.Timeout | null>(null);
 
+    // Handles validation and registration attempt
     const handleRegister = () => {
-        console.log(email, username, password);
+        // Only for verifying the information is passed correctly
+        console.log(email, password);
+
+        // Verify that both the email and password were not blank
+        var errors: string[] = [];
+        if (email.length === 0) {
+            errors.push("Email cannot be blank.");
+        }
+        if (username.length === 0) {
+            errors.push("Username cannot be blank");
+        }
+        if (password.length === 0) {
+            errors.push("Password cannot be blank.");
+        }
+
+        // Display the notification if any errors exist
+        if (errors.length !== 0) {
+            updateNotification(errors);
+            resetNotification();
+            return;
+        }
+
+        // Sanitize the email to ensure no sql attacks
+        // In production this would be more restrictive and the backend would also confirm that the email is a proper domain
+        const sanitizeEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!sanitizeEmail.test(email)) {
+            updateNotification(["Invalid email."]);
+            updateEmail("");
+            updateUsername("");
+            updatePassword("");
+            resetNotification();
+            return;
+        }
+        const regRequest = NewRegistrationRequest({ Email: email, Username: username, Password: password });
+
+        fetch(`${ApiPath.backend}${ApiPath.login}`, {
+            method: JsonComponent.put,
+            headers: {
+                [JsonComponent.contentType]: JsonComponent.applicationJson
+            },
+            body: JSON.stringify(regRequest),
+        }).then(response => {
+            if (!response.ok) {
+                errors.push(response.statusText);
+                return;
+            }
+        }).then(data => {
+            console.log("Succes:", data);
+        }).catch((error) => {
+            errors.push("Error", error);
+            console.error("Error:", error);
+        });
+    };
+
+    // Resets the notifications
+    const resetNotification = () => {
+        if (timer.current) {
+            clearTimeout(timer.current);
+        }
+
+        timer.current = setTimeout(() => {
+            updateNotification([]);
+        }, 5000);
     };
 
     return (
         <div className="flex flex-col justify-between">
-            <p className="text-center text-3xl mb-10 text-blue-700 font-extrabold">
-                Register
-            </p>
+            <div className="flex justify-between">
+                <button
+                    className="border-2 border-black h-8 self-start rounded-xl w-14"
+                    onClick={() => updateSelection(SelectionType.unselected)}
+                >
+                    Back
+                </button>
+                <p className="text-center text-3xl mb-10 text-blue-700 font-extrabold">
+                    Register
+                </p>
+                <p></p>
+                <p></p>
+            </div>
+            <div className="text-red-400 text-base text-wrap self-center flex flex-col">
+                {notification.map((message, i) => (
+                    <p key={i}>{message}</p>
+                ))}
+            </div>
             <div className="flex flex-col h-full w-full content-center justify-center text-black gap-3">
                 <p className="text-black font-extrabold text-lg self-center -mb-2">Email</p>
                 <input

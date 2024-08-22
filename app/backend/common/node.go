@@ -35,6 +35,7 @@ type Node struct {
 
 // Generates and returns a new node
 func NewNode() *Node {
+	fmt.Printf("Attempting to open or create log file: %s\n", os.Getenv(string(logFile)))
 	file, err := os.OpenFile(os.Getenv(string(logFile)), os.O_CREATE|os.O_WRONLY|os.O_APPEND, permissions)
 	if err != nil {
 		log.Fatalf("Failed to open log file: %v", err)

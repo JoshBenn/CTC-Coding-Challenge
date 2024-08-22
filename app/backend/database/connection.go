@@ -11,7 +11,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-const Schema = "./schema.sql"
+const Schema = "./database/schema.sql"
 
 // For migrating the database if necessary
 func migrate(migrationFile string, queries *Queries, context *context.Context) error {

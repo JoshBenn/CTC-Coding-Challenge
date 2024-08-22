@@ -6,5 +6,7 @@ RUN npm ci
 RUN npm run build
 
 # Serve frontend
-EXPOSE 3000
-CMD ["npm", "start"]
+FROM nginx:alpine3.18
+COPY --from=frontend /app/frontend/dist /usr/share/nginx/html
+COPY --from=frontend /app/frontend/nginx /etc/nginx
+CMD ["nginx", "-g", "daemon off;"]
