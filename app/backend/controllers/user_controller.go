@@ -45,7 +45,8 @@ func AuthenticationHandler(node *common.Node) http.HandlerFunc {
 					http.Error(writer, err.Error(), http.StatusBadRequest)
 					return
 				}
-				fmt.Println(registration)
+				// Prepare the header
+				writer.Header().Set(string(common.ContentType), string(common.ApplicationJson))
 
 				// Validate the data exists in the body
 				var errs []string
@@ -56,20 +57,20 @@ func AuthenticationHandler(node *common.Node) http.HandlerFunc {
 
 				// If any of the above failed then user cannot be created
 				if len(errs) != 0 {
-					http.Error(writer, strings.Join(errs, " "), http.StatusBadRequest)
+					json.NewEncoder(writer).Encode(models.NewRegisterResponse(false, strings.Join(errs, " ")))
 					return
 				}
 
 				// Validate the email
 				if err := validateEmail(&registration); err != nil {
+					fmt.Println(err)
 					// Determine what type of error and return that
 					if err.Error() == string(models.InvalidEmail) {
-						http.Error(writer, string(models.InvalidEmail), http.StatusBadRequest)
+						json.NewEncoder(writer).Encode(models.NewRegisterResponse(false, string(models.InvalidEmail)))
 						return
 					}
 
-					node.Log <- common.NewLog(common.Error, fmt.Sprintf("Unable to compile regex for email validation: %v", err))
-					http.Error(writer, string(common.ServerCompilationError), http.StatusInternalServerError)
+					json.NewEncoder(writer).Encode(models.NewRegisterResponse(false, string(common.ServerCompilationError)))
 					return
 				}
 
@@ -81,15 +82,20 @@ func AuthenticationHandler(node *common.Node) http.HandlerFunc {
 				}
 				defer provider.CloseDbConn(node)
 
-				// Check if the user already exists
-				if err := queryUser(provider, &registration); err != nil {
-					http.Error(writer, models.UserError(models.UserExists), http.StatusBadRequest)
-					return
+				// Check if users exist in the database
+				users, err := getUsers(provider)
+				if err != nil || len(users) != 0 {
+					// Check if the user already exists
+					if err := queryUser(provider, &registration); err != nil {
+						json.NewEncoder(writer).Encode(models.NewRegisterResponse(false, string(models.UserExists)))
+						return
+					}
 				}
 
 				// Hash the password
 				hash, err := hashPassword(&registration)
 				if err != nil {
+					http.Error(writer, err.Error(), http.StatusInternalServerError)
 					node.Log <- common.NewLog(common.Error, fmt.Sprintf("Could not hash password for %s\n\t%s", registration.Email, err.Error()))
 					return
 				}
@@ -100,6 +106,7 @@ func AuthenticationHandler(node *common.Node) http.HandlerFunc {
 					Username: registration.Username,
 					Password: hash,
 				}
+				fmt.Println(createUserParams)
 				user, err := provider.Queries.Createuser(context.Background(), createUserParams)
 				if err != nil {
 					node.Log <- common.NewLog(common.Error, fmt.Sprintf("Could not hash password for %s\n\t%s", registration.Email, err.Error()))
@@ -107,8 +114,7 @@ func AuthenticationHandler(node *common.Node) http.HandlerFunc {
 				}
 
 				// Return a response
-				writer.Header().Set(string(common.ContentType), string(common.ApplicationJson))
-				json.NewEncoder(writer).Encode(models.NewRegisterResponse(true, fmt.Sprintf("User with email <%s> created", user.Email)))
+				json.NewEncoder(writer).Encode(models.NewRegisterResponse(true, string(common.Success)))
 
 				node.Output <- fmt.Sprintf("User with email <%s> created", user.Email)
 				node.Log <- common.NewLog(common.Info, fmt.Sprintf("User with email <%s> created", user.Email))
@@ -125,11 +131,12 @@ func AuthenticationHandler(node *common.Node) http.HandlerFunc {
 					http.Error(writer, err.Error(), http.StatusBadRequest)
 					return
 				}
+				writer.Header().Set(string(common.ContentType), string(common.ApplicationJson))
 
 				// Validate the passed information
 				errs := validateUser(&login)
 				if len(errs) != 0 {
-					http.Error(writer, strings.Join(errs, " "), http.StatusBadRequest)
+					json.NewEncoder(writer).Encode(models.NewRegisterResponse(false, strings.Join(errs, " ")))
 					return
 				}
 
@@ -146,13 +153,13 @@ func AuthenticationHandler(node *common.Node) http.HandlerFunc {
 				// Attempt to get the user via email
 				user, err := getUserByEmail(provider, login.Email)
 				if err != nil {
-					http.Error(writer, string(models.DoesNotExist), http.StatusBadRequest)
+					json.NewEncoder(writer).Encode(models.NewRegisterResponse(false, string(models.DoesNotExist)))
 					return
 				}
 
 				// Validate the password
 				if valid := checkPassword(&login, user.Password); !valid {
-					http.Error(writer, string(models.InvalidCredentials), http.StatusBadRequest)
+					json.NewEncoder(writer).Encode(models.NewRegisterResponse(false, string(models.InvalidCredentials)))
 					return
 				}
 
@@ -187,8 +194,9 @@ func AuthenticationHandler(node *common.Node) http.HandlerFunc {
 					Value: tokenString,
 				}
 
-				writer.Header().Set(string(common.ContentType), string(common.ApplicationJson))
+				json.NewEncoder(writer).Encode(models.NewRegisterResponse(true, string(common.Success)))
 				http.SetCookie(writer, &cookie)
+				return
 			}
 
 			// All other methods passed
@@ -271,6 +279,7 @@ func getUserByEmail(provider *services.Provider, email string) (models.User, err
 	// Get the user  via email
 	dbUser, err := provider.Queries.GetUserByEmail(context.Background(), email)
 	if err != nil {
+		fmt.Println(err)
 		return models.User{}, err
 	}
 

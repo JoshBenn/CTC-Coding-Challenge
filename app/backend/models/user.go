@@ -34,7 +34,7 @@ const (
 	InvalidCredentials UserErr = "InvalidCredentials"
 	UserExists         UserErr = "User already exists"
 
-	EMAIL_REGEX = `/^[^\s@]+@[^\s@]+\.[^\s@]+$/`
+	EMAIL_REGEX = `^[a-z0-9._%\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`
 )
 
 // Create the error with this string
