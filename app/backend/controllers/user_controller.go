@@ -196,7 +196,7 @@ func AuthenticationHandler(node *common.Node) http.HandlerFunc {
 					Value: tokenString,
 				}
 
-				json.NewEncoder(writer).Encode(models.NewAuthenticationResponse(false, string(common.Success), user.Username, tokenString, exp))
+				json.NewEncoder(writer).Encode(models.NewAuthenticationResponse(true, string(common.Success), user.Username, tokenString, exp))
 				http.SetCookie(writer, &cookie)
 				return
 			}

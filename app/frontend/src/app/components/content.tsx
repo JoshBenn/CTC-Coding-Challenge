@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { UserData } from "../models/user";
-import Login from "./login";
 import Selection from "./selection";
+import Chatroom from "./chatroom";
 
 // Props for the content of the main page
 interface ContentProps {
@@ -11,9 +11,14 @@ interface ContentProps {
 
 const Content = ({ userData, updateUserData }: ContentProps) => {
     const content = () => {
+        userData = { username: "test", token: "asdf", exp: 123 };
         if (userData === undefined) {
             return (
                 <Selection updateUserData={updateUserData} />
+            );
+        } else {
+            return (
+                <Chatroom user={userData} />
             );
         }
 

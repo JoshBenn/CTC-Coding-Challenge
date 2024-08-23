@@ -15,9 +15,6 @@ const Login = ({ updateSelection, updateUserData }: LoginProps) => {
 
     // Handles validation and login attempt
     const handleLogin = () => {
-        // Only for verifying the information is passed correctly
-        console.log(email, password);
-
         // Verify that both the email and password were not blank
         var errors: string[] = [];
         if (email.length === 0) {
@@ -45,6 +42,7 @@ const Login = ({ updateSelection, updateUserData }: LoginProps) => {
         }
         const authRequest = NewAuthRequest({ InOut: InOut.In, Email: email, Password: password });
 
+        // Send the reqeust
         fetch(`${ApiPath.backend}${ApiPath.login}`, {
             method: JsonComponent.post,
             headers: {
@@ -56,22 +54,37 @@ const Login = ({ updateSelection, updateUserData }: LoginProps) => {
                 errors.push(response.statusText);
                 return;
             }
-            console.log(response);
 
             const cookie = response.headers.get(JsonComponent.setCookie);
             if (cookie) {
-                console.log(cookie)
                 document.cookie = cookie;
             }
+            
             return response.json()
         }).then(data => {
-            if (data) {
-                console.log("Success", data);
+            let username: string = "";
+            let token: string = "";
+            let exp: number = 0;
+            if (data.username) {
+                username = data.username;
             }
+            if (data.token) {
+                token = data.token;
+            }
+            if (data.exp) {
+                exp = data.exp;
+            }
+
+            updateUserData({username, token, exp});
         }).catch((error) => {
             errors.push("Error", error);
             console.error("Error:", error);
         });
+
+        if (errors.length !== 0) {
+            updateNotification(errors);
+            resetNotification();
+        }
     };
 
     // Resets the notifications

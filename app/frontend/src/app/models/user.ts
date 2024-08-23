@@ -22,6 +22,14 @@ export type UserData = {
     exp: number;
 };
 
+export const NewUserData = ({ username, token, exp }: UserData) => {
+    return {
+        username: username,
+        token: token,
+        exp: exp,
+    };
+};
+
 export const InOut = Object.freeze({
     Err: 0,
     In: 1,
