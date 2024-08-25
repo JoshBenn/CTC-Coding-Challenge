@@ -3,7 +3,6 @@ package models
 import (
 	"slices"
 	"sync"
-	"time"
 
 	"github.com/JoshBenn/CTC-Coding-Challenge/common"
 )
@@ -13,7 +12,6 @@ const MESSAGE_LIMIT = 1000
 // Represents a single message in the application
 type Message struct {
 	Username string
-	Time     time.Time
 	Content  string
 }
 

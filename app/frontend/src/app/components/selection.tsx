@@ -15,13 +15,13 @@ const Selection = ({ updateUserData }: SelectionProps) => {
     const handleSelection = () => (
         <div className="flex items-center justify-center gap-10">
             <button
-                className="h-20 w-72 bg-green-600 text-white text-xl"
+                className="h-20 w-72 bg-green-600 text-white text-xl rounded-xl"
                 onClick={() => updateSelected(SelectionType.login)}
             >
                 Log In
             </button>
             <button
-                className="h-20 w-72 bg-blue-600 text-white text-xl"
+                className="h-20 w-72 bg-blue-600 text-white text-xl rounded-xl"
                 onClick={() => updateSelected(SelectionType.register)}
             >
                 Register

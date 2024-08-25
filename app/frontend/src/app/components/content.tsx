@@ -24,7 +24,7 @@ const Content = ({ userData, updateUserData }: ContentProps) => {
 
     };
     return (
-        <div className="flex flex-col my-10 w-3/4 h-full border-2 border-slate-600 rounded-3xl content-center justify-center">
+        <div className="flex flex-col my-10 w-3/4 h-4/5 border-2 border-slate-600 rounded-3xl content-center justify-center">
             {content()}
         </div>
     );
