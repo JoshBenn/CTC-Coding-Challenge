@@ -30,6 +30,7 @@ func ChatHandler(node *common.Node, chatroom *models.Chatroom) http.HandlerFunc 
 			// Get the messages
 		case http.MethodPost:
 			{
+				fmt.Println(request.Body)
 				var msg models.Message
 				decoder := json.NewDecoder(request.Body)
 				if err := decoder.Decode(&msg); err != nil {

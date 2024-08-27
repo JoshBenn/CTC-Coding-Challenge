@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { InOut, UserData, NewAuthRequest } from "../models/user";
+import { InOut, UserData, NewAuthRequest, NewUserData } from "../models/user";
 import { ApiPath, JsonComponent, SelectionType } from "../common/utils";
 
 interface LoginProps {
@@ -52,16 +52,21 @@ const Login = ({ updateSelection, updateUserData }: LoginProps) => {
         }).then(response => {
             if (!response.ok) {
                 errors.push(response.statusText);
-                return;
+                return false;
             }
 
             const cookie = response.headers.get(JsonComponent.setCookie);
             if (cookie) {
                 document.cookie = cookie;
             }
-            
+
             return response.json()
         }).then(data => {
+            if (!data || data.success === "STATUS_FAILURE") {
+                console.log("Error");
+                return;
+            }
+
             let username: string = "";
             let token: string = "";
             let exp: number = 0;
@@ -75,7 +80,8 @@ const Login = ({ updateSelection, updateUserData }: LoginProps) => {
                 exp = data.exp;
             }
 
-            updateUserData({username, token, exp});
+            console.log(username, token, exp)
+            updateUserData(NewUserData({ username, token, exp }));
         }).catch((error) => {
             errors.push("Error", error);
             console.error("Error:", error);

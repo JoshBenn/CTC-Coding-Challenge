@@ -1,12 +1,12 @@
 
 export type Message = {
-    User: string;
+    Username: string;
     Content: string;
 };
 
-export const NewMessageRequest = ({User, Content}: Message) => {
+export const NewMessageRequest = ({Username: User, Content}: Message) => {
     return {
-        user: User,
+        username: User,
         content: Content,
     };
 };

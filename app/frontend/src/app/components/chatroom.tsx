@@ -15,32 +15,32 @@ const Chatroom = ({ user }: ChatroomProps) => {
 
     // Contains all of the messages currently tracked in the chatroom (currently temporarily filled for testing)
     const [messages, updateMessages] = useState<Message[]>([
-        { User: "a", Content: "start" },
-        { User: "b", Content: "This" },
-        { User: "c", Content: "This" },
-        { User: "d", Content: "This" },
-        { User: "e", Content: "This" },
-        { User: "f", Content: "This" },
-        { User: "g", Content: "This" },
-        { User: "h", Content: "This" },
-        { User: "i", Content: "This" },
-        { User: "j", Content: "This" },
-        { User: "k", Content: "This" },
-        { User: "l", Content: "This" },
-        { User: "m", Content: "This" },
-        { User: "n", Content: "This" },
-        { User: "o", Content: "This" },
-        { User: "p", Content: "This" },
-        { User: "q", Content: "This" },
-        { User: "r", Content: "This" },
-        { User: "s", Content: "This" },
-        { User: "t", Content: "This" },
-        { User: "u", Content: "This" },
-        { User: "v", Content: "This" },
-        { User: "w", Content: "This" },
-        { User: "x", Content: "This" },
-        { User: "y", Content: "This" },
-        { User: "z", Content: "end" },
+        // { User: "a", Content: "start" },
+        // { User: "b", Content: "This" },
+        // { User: "c", Content: "This" },
+        // { User: "d", Content: "This" },
+        // { User: "e", Content: "This" },
+        // { User: "f", Content: "This" },
+        // { User: "g", Content: "This" },
+        // { User: "h", Content: "This" },
+        // { User: "i", Content: "This" },
+        // { User: "j", Content: "This" },
+        // { User: "k", Content: "This" },
+        // { User: "l", Content: "This" },
+        // { User: "m", Content: "This" },
+        // { User: "n", Content: "This" },
+        // { User: "o", Content: "This" },
+        // { User: "p", Content: "This" },
+        // { User: "q", Content: "This" },
+        // { User: "r", Content: "This" },
+        // { User: "s", Content: "This" },
+        // { User: "t", Content: "This" },
+        // { User: "u", Content: "This" },
+        // { User: "v", Content: "This" },
+        // { User: "w", Content: "This" },
+        // { User: "x", Content: "This" },
+        // { User: "y", Content: "This" },
+        // { User: "z", Content: "end" },
     ]);
 
     // Contains the current user message
@@ -90,8 +90,13 @@ const Chatroom = ({ user }: ChatroomProps) => {
                 console.log("Error in sending request", data);
                 return;
             }
-            updateMessages(data.messages);
-            console.log(data);
+
+            let msgs: Message[] = [];
+            for (let msg of data.messages) {
+                msgs.push({ Username: msg.username, Content: msg.content });
+            }
+            updateMessages(msgs);
+            console.log(msgs);
 
             // Reset the interval
             resetInterval();
@@ -101,8 +106,9 @@ const Chatroom = ({ user }: ChatroomProps) => {
     };
 
     const postMessage = () => {
-        const messageRequest = NewMessageRequest({ User: user.username, Content: message });
+        const messageRequest = NewMessageRequest({ Username: user.username, Content: message });
         updateMessage("");
+        console.log(messageRequest);
 
         // Send the reqeust
         fetch(`${ApiPath.backend}${ApiPath.chat}`, {
@@ -113,7 +119,7 @@ const Chatroom = ({ user }: ChatroomProps) => {
             body: JSON.stringify(messageRequest),
         }).then(response => {
             if (!response.ok) {
-                console.log(response);
+                console.log(response.text);
                 return;
             }
 
@@ -138,7 +144,7 @@ const Chatroom = ({ user }: ChatroomProps) => {
             <div className="scroll overflow-auto gap-2">
                 {messages.map((message, i) => (
                     <div className="rounded-2xl hover:bg-slate-600 bg-[#2f3035]" key={i}>
-                        <p className="px-4 font-bold" >{`${message.User}:`}</p>
+                        <p className="px-4 font-bold" >{`${message.Username}:`}</p>
                         <p className="px-8 font-light" >{message.Content}</p>
                     </div>
                 ))}

@@ -11,8 +11,8 @@ const MESSAGE_LIMIT = 200
 
 // Represents a single message in the application
 type Message struct {
-	Username string
-	Content  string
+	Username string `json:"username"`
+	Content  string `json:"content"`
 }
 
 type MessageResponse struct {
