@@ -7,12 +7,22 @@ import (
 	"github.com/JoshBenn/CTC-Coding-Challenge/common"
 )
 
-const MESSAGE_LIMIT = 1000
+const MESSAGE_LIMIT = 200
 
 // Represents a single message in the application
 type Message struct {
 	Username string
 	Content  string
+}
+
+type MessageResponse struct {
+	Status string `json:"status"`
+}
+
+func NewMessageResponse(status common.JsonComponent) MessageResponse {
+	return MessageResponse{
+		Status: string(status),
+	}
 }
 
 type ChatResponse struct {
@@ -71,7 +81,8 @@ func (chatroom *Chatroom) handleMessages() {
 
 func (chatroom *Chatroom) GetMessages() []Message {
 	chatroom.RwMutex.RLock()
-	messages := chatroom.messages
-	chatroom.RwMutex.RUnlock()
+	defer chatroom.RwMutex.RUnlock()
+	messages := make([]Message, len(chatroom.messages))
+	copy(messages, chatroom.messages)
 	return messages
 }

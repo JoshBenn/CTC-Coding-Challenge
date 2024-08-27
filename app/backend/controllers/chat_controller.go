@@ -11,7 +11,7 @@ import (
 
 func ChatHandler(node *common.Node, chatroom *models.Chatroom) http.HandlerFunc {
 	return func(writer http.ResponseWriter, request *http.Request) {
-		if request.URL.Path != string(common.Authentication) {
+		if request.URL.Path != string(common.Chat) {
 			http.NotFound(writer, request)
 			return
 		}
@@ -20,17 +20,42 @@ func ChatHandler(node *common.Node, chatroom *models.Chatroom) http.HandlerFunc 
 		// New message
 		case http.MethodGet:
 			{
-
 				writer.Header().Set(string(common.ContentType), string(common.ApplicationJson))
-				json.NewEncoder(writer).Encode(models.NewChatResponse(chatroom))
-				break
+				if err := json.NewEncoder(writer).Encode(models.NewChatResponse(chatroom)); err != nil {
+					node.Log <- common.NewLog(common.Error, err.Error())
+				}
+				return
 			}
 
 			// Get the messages
 		case http.MethodPost:
 			{
+				var msg models.Message
+				decoder := json.NewDecoder(request.Body)
+				if err := decoder.Decode(&msg); err != nil {
+					node.Output <- fmt.Sprintf("Could not parse body %v", request.Body)
+					http.Error(writer, "Invalid message format", http.StatusBadRequest)
+					return
+				}
 
-				break
+				// Message validation
+				if msg.Username == "" || msg.Content == "" {
+					node.Output <- "Username and content cannot be empty"
+					http.Error(writer, "Username and content cannot be empty", http.StatusBadRequest)
+					return
+				}
+
+				// Send the message to the chatroom
+				chatroom.MessageChannel <- msg
+
+				// Respond with success
+				writer.WriteHeader(http.StatusCreated)
+				writer.Header().Set(string(common.ContentType), string(common.ApplicationJson))
+				response := models.NewMessageResponse(common.Success)
+
+				json.NewEncoder(writer).Encode(response)
+
+				return
 			}
 
 			// All other methods passed
