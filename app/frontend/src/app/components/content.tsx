@@ -9,9 +9,11 @@ interface ContentProps {
     updateUserData: React.Dispatch<React.SetStateAction<UserData | undefined>>;
 }
 
+// For the main content section of the page
 const Content = ({ userData, updateUserData }: ContentProps) => {
+    // maintains the content on the page
     const content = () => {
-        userData = { username: "test", token: "asdf", exp: 123 };
+        //userData = { username: "test", token: "asdf", exp: 123 };
         if (userData === undefined) {
             return (
                 <Selection updateUserData={updateUserData} />
@@ -23,8 +25,9 @@ const Content = ({ userData, updateUserData }: ContentProps) => {
         }
 
     };
+
     return (
-        <div className="flex flex-col my-10 w-3/4 h-4/5 border-2 border-slate-600 rounded-3xl content-center justify-center">
+        <div className="flex flex-col my-10 w-3/4 h-4/5 content-center justify-center">
             {content()}
         </div>
     );

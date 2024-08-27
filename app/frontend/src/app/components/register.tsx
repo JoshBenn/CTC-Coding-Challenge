@@ -16,9 +16,6 @@ const Register = ({ updateSelection, updateUserData }: RegisterProps) => {
 
     // Handles validation and registration attempt
     const handleRegister = () => {
-        // Only for verifying the information is passed correctly
-        console.log(email, password);
-
         // Verify that both the email and password were not blank
         var errors: string[] = [];
         if (email.length === 0) {
@@ -51,6 +48,7 @@ const Register = ({ updateSelection, updateUserData }: RegisterProps) => {
         }
         const regRequest = NewRegistrationRequest({ Email: email, Username: username, Password: password });
 
+        // Send the registration request
         fetch(`${ApiPath.backend}${ApiPath.login}`, {
             method: JsonComponent.put,
             headers: {
@@ -58,12 +56,25 @@ const Register = ({ updateSelection, updateUserData }: RegisterProps) => {
             },
             body: JSON.stringify(regRequest),
         }).then(response => {
+            // If the response is not okay
             if (!response.ok) {
                 errors.push(response.statusText);
+                updateNotification(errors);
+                resetNotification();
                 return;
             }
+
+            return response.json;
         }).then(data => {
+            if (!data) {
+                console.log("Unsuccessful");
+                return;
+            }
+
             console.log("Succes:", data);
+
+            // Send user to login page
+            updateSelection(SelectionType.login);
         }).catch((error) => {
             errors.push("Error", error);
             console.error("Error:", error);
@@ -85,7 +96,7 @@ const Register = ({ updateSelection, updateUserData }: RegisterProps) => {
         <div className="flex flex-col justify-between">
             <div className="flex justify-between">
                 <button
-                    className="border-2 border-black h-8 self-start rounded-xl w-14"
+                    className="border-2 border-black hover:bg-slate-500 hover:text-white h-8 self-start rounded-xl w-14"
                     onClick={() => updateSelection(SelectionType.unselected)}
                 >
                     Back

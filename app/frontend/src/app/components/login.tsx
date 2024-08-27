@@ -102,7 +102,7 @@ const Login = ({ updateSelection, updateUserData }: LoginProps) => {
         <div className="flex flex-col justify-between">
             <div className="flex justify-between">
                 <button
-                    className="border-2 border-black h-8 self-start rounded-xl w-14"
+                    className="border-2 border-black hover:bg-slate-500 hover:text-white h-8 self-start rounded-xl w-14"
                     onClick={() => updateSelection(SelectionType.unselected)}
                 >
                     Back

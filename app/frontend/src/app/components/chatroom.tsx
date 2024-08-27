@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { UserData } from "../models/user";
 import { ApiPath, JsonComponent } from "../common/utils";
 import { Message, NewMessageRequest } from "../models/chat";
@@ -8,6 +8,12 @@ export type ChatroomProps = {
 }
 
 const Chatroom = ({ user }: ChatroomProps) => {
+    // Maintains update timeout reference
+    const update = useRef<NodeJS.Timeout | null>(null);
+    // Update interval for getting messages from the server
+    const interval = 100;
+
+    // Contains all of the messages currently tracked in the chatroom (currently temporarily filled for testing)
     const [messages, updateMessages] = useState<Message[]>([
         { User: "a", Content: "start" },
         { User: "b", Content: "This" },
@@ -36,15 +42,36 @@ const Chatroom = ({ user }: ChatroomProps) => {
         { User: "y", Content: "This" },
         { User: "z", Content: "end" },
     ]);
+
+    // Contains the current user message
     const [message, updateMessage] = useState<string>("");
 
+    const resetInterval = () => {
+        if (update.current) {
+            clearInterval(update.current);
+        }
+        update.current = setInterval(() => {
+            getMessages();
+        }, interval);
+    };
+
     useEffect(() => {
-        getMessages();
+        resetInterval();
+
+        return () => {
+            if (update.current) {
+                clearInterval(update.current);
+            }
+        };
     }, []);
 
     const getMessages = () => {
+        if (update.current) {
+            clearInterval(update.current);
+        }
+
         // Send the reqeust
-        fetch(`${ApiPath.backend}${ApiPath.login}`, {
+        fetch(`${ApiPath.backend}${ApiPath.chat}`, {
             method: JsonComponent.get,
             headers: {
                 [JsonComponent.contentType]: JsonComponent.applicationJson
@@ -52,13 +79,22 @@ const Chatroom = ({ user }: ChatroomProps) => {
         }).then(response => {
             if (!response.ok) {
                 console.log(response);
+                resetInterval();
                 return;
             }
 
             return response.json()
         }).then(data => {
+            if (!data) {
+                resetInterval();
+                console.log("Error in sending request", data);
+                return;
+            }
             updateMessages(data.messages);
             console.log(data);
+
+            // Reset the interval
+            resetInterval();
         }).catch((error) => {
             console.error("Error:", error);
         });
@@ -69,7 +105,7 @@ const Chatroom = ({ user }: ChatroomProps) => {
         updateMessage("");
 
         // Send the reqeust
-        fetch(`${ApiPath.backend}${ApiPath.login}`, {
+        fetch(`${ApiPath.backend}${ApiPath.chat}`, {
             method: JsonComponent.post,
             headers: {
                 [JsonComponent.contentType]: JsonComponent.applicationJson
@@ -83,13 +119,14 @@ const Chatroom = ({ user }: ChatroomProps) => {
 
             return response.json()
         }).then(data => {
-            updateMessages(data.messages);
+            // Log for visibility
             console.log(data);
+
+            // Get messages
+            getMessages();
         }).catch((error) => {
             console.error("Error:", error);
         });
-
-        getMessages();
     };
 
     return (
@@ -100,9 +137,9 @@ const Chatroom = ({ user }: ChatroomProps) => {
         >
             <div className="scroll overflow-auto gap-2">
                 {messages.map((message, i) => (
-                    <div className="rounded-2xl hover:bg-slate-600 bg-[#2f3035]">
-                        <p className="px-4 font-bold" key={i} >{`${message.User}:`}</p>
-                        <p className="px-8 font-light" key={i} >{message.Content}</p>
+                    <div className="rounded-2xl hover:bg-slate-600 bg-[#2f3035]" key={i}>
+                        <p className="px-4 font-bold" >{`${message.User}:`}</p>
+                        <p className="px-8 font-light" >{message.Content}</p>
                     </div>
                 ))}
             </div>
