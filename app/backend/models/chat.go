@@ -15,6 +15,16 @@ type Message struct {
 	Content  string
 }
 
+type ChatResponse struct {
+	Messages []Message `json:"messages"`
+}
+
+func NewChatResponse(chatroom *Chatroom) ChatResponse {
+	return ChatResponse{
+		Messages: chatroom.GetMessages(),
+	}
+}
+
 // Represents a single chatroom
 // -- In prod, will have more than a single chatroom available, but for the purposes of this exercise will just maintain a single one
 type Chatroom struct {

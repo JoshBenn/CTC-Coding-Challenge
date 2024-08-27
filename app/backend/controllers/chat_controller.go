@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -17,8 +18,11 @@ func ChatHandler(node *common.Node, chatroom *models.Chatroom) http.HandlerFunc 
 
 		switch request.Method {
 		// New message
-		case http.MethodPut:
+		case http.MethodGet:
 			{
+
+				writer.Header().Set(string(common.ContentType), string(common.ApplicationJson))
+				json.NewEncoder(writer).Encode(models.NewChatResponse(chatroom))
 				break
 			}
 

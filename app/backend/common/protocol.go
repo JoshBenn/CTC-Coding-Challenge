@@ -7,7 +7,7 @@ const (
 	// User: Registration[PUT] and Login[POST]
 	Authentication Path = "/login"
 
-	// Message: New[Put] Refresh[Get]
+	// Message: New[POST] Refresh[GET]
 	Chat Path = "/chat"
 )
 
