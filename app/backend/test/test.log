@@ -1,0 +1,4 @@
+time=2024-08-30T12:32:45.483-07:00 level=WARN msg="Failed to connect to database, attempt 1"
+time=2024-08-30T12:33:18.572-07:00 level=WARN msg="Failed to connect to database, attempt 1"
+time=2024-08-30T12:33:28.151-07:00 level=WARN msg="Failed to connect to database, attempt 2"
+time=2024-08-30T12:33:43.446-07:00 level=WARN msg="Failed to connect to database, attempt 1"

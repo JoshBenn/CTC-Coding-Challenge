@@ -6,7 +6,7 @@ import { useState } from "react";
 import { UserData } from "./models/user";
 
 export default function Home() {
-    const [userData, updateUserData] = useState<UserData | undefined>({ username: "test", token: "asdf", exp: 123 });
+    const [userData, updateUserData] = useState<UserData | undefined>(undefined);
 
     return (
         <main className="flex h-screen flex-col items-center">

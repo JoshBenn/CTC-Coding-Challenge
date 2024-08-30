@@ -51,12 +51,12 @@ const Chatroom = ({ user }: ChatroomProps) => {
             clearInterval(update.current);
         }
         update.current = setInterval(() => {
-            // getMessages();
+            getMessages();
         }, interval);
     };
 
     useEffect(() => {
-        // resetInterval();
+        resetInterval();
 
         return () => {
             if (update.current) {
@@ -65,45 +65,45 @@ const Chatroom = ({ user }: ChatroomProps) => {
         };
     }, []);
 
-    // const getMessages = () => {
-    //     if (update.current) {
-    //         clearInterval(update.current);
-    //     }
+    const getMessages = () => {
+        if (update.current) {
+            clearInterval(update.current);
+        }
 
-    //     // Send the reqeust
-    //     fetch(`${ApiPath.backend}${ApiPath.chat}`, {
-    //         method: JsonComponent.get,
-    //         headers: {
-    //             [JsonComponent.contentType]: JsonComponent.applicationJson
-    //         },
-    //     }).then(response => {
-    //         if (!response.ok) {
-    //             console.log(response);
-    //             resetInterval();
-    //             return false;
-    //         }
+        // Send the reqeust
+        fetch(`${ApiPath.backend}${ApiPath.chat}`, {
+            method: JsonComponent.get,
+            headers: {
+                [JsonComponent.contentType]: JsonComponent.applicationJson
+            },
+        }).then(response => {
+            if (!response.ok) {
+                console.log(response);
+                resetInterval();
+                return false;
+            }
 
-    //         return response.json()
-    //     }).then(data => {
-    //         if (!data) {
-    //             resetInterval();
-    //             console.log("Error in sending request", data);
-    //             return;
-    //         }
+            return response.json()
+        }).then(data => {
+            if (!data) {
+                resetInterval();
+                console.log("Error in sending request", data);
+                return;
+            }
 
-    //         // Convert all the messages into a readable format
-    //         let msgs: Message[] = [];
-    //         for (let msg of data.messages) {
-    //             msgs.push({ Username: msg.username, Content: msg.content });
-    //         }
-    //         updateMessages(msgs);
+            // Convert all the messages into a readable format
+            let msgs: Message[] = [];
+            for (let msg of data.messages) {
+                msgs.push({ Username: msg.username, Content: msg.content });
+            }
+            updateMessages(msgs);
 
-    //         // Reset the interval
-    //         resetInterval();
-    //     }).catch((error) => {
-    //         console.error("Error:", error);
-    //     });
-    // };
+            // Reset the interval
+            resetInterval();
+        }).catch((error) => {
+            console.error("Error:", error);
+        });
+    };
 
     const postMessage = () => {
         const messageRequest = NewMessageRequest({ Username: user.username, Content: message });
@@ -130,7 +130,7 @@ const Chatroom = ({ user }: ChatroomProps) => {
             }
 
             // Get messages
-            // getMessages();
+            getMessages();
         }).catch((error) => {
             console.error("Error:", error);
         });
